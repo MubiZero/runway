@@ -1,0 +1,19 @@
+{
+  "name": "runway",
+  "description": "Ведёт существующую кодовую базу к релизу или пилоту: анализ кода и состояния, интервью с владельцем (вопрос за вопросом, с вариантами), затем автономная работа по очереди приоритетов: три прохода, симуляция ролей, release gate",
+  "version": "1.0.0",
+  "author": {
+    "name": "MubiZero"
+  },
+  "homepage": "https://github.com/MubiZero/runway",
+  "repository": "https://github.com/MubiZero/runway",
+  "license": "MIT",
+  "keywords": [
+    "release",
+    "audit",
+    "autonomy",
+    "pilot",
+    "ux",
+    "quality"
+  ]
+}

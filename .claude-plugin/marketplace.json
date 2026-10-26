@@ -1,0 +1,18 @@
+{
+  "name": "runway",
+  "description": "runway: скилл, который ведёт существующий проект от «почти готово» до пилота",
+  "owner": {
+    "name": "MubiZero"
+  },
+  "plugins": [
+    {
+      "name": "runway",
+      "description": "Анализ кода, интервью с владельцем, автономная работа по очереди приоритетов, три прохода, симуляция ролей, release gate",
+      "version": "1.0.0",
+      "source": "./",
+      "author": {
+        "name": "MubiZero"
+      }
+    }
+  ]
+}

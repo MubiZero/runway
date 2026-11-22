@@ -1,195 +1,84 @@
 ---
 name: runway
 description: >-
-  Ведёт проект от «почти готово» до релиза/пилота (6 фаз: анализ, интервью, контракты RELEASE/PROFILE/STATE,
-  три прохода, персоны, release gate) или разбирает одну часть без цели релиза. Применяй на: «доведи до релиза»,
-  «подготовь к пилоту», «продолжай по STATE.md», «пройдись по продукту/админке», «свежий взгляд», «второй проход»,
-  «доведи до ума»; take to release, audit and ship, review the product, polish this part.
+  Drives an existing codebase from almost-done to release/pilot (6 phases: analysis, interview, contracts
+  RELEASE/PROFILE/STATE, three passes, role personas, release gate) or audits one area without a release goal.
+  Use on: "доведи до релиза", "подготовь к пилоту", "продолжай по STATE.md", "пройдись по продукту/админке",
+  "свежий взгляд", "второй проход", "доведи до ума", take to release, audit and ship, review the product, polish this part.
 ---
 
-# runway: от «почти готово» до пилота
+# runway: From Almost-Done to Pilot
 
-Проекты застревают на пути к релизу не из-за кода, а из-за трёх пустот. Нет определения
-«готово», поэтому работа не заканчивается. Нет порядка, поэтому полировка обгоняет
-блокеры. Нет памяти между сессиями, поэтому каждая начинает с нуля. Скилл закрывает все три:
-он **сначала смотрит на код**, потом **договаривается с владельцем** и записывает договорённости
-в файлы, потом **работает сам**, пока не позеленеет gate или не останутся только вопросы
-владельцу.
+Projects stall before release because of three gaps: no definition of "done", no priority order (polish outruns blockers), and no cross-session memory. This skill closes all three: **inspect code first**, **agree on contracts with the owner**, then **execute autonomously** until the release gate turns green or only owner decisions remain.
 
-Владелец решает «что и как далеко». Всё остальное решаешь ты. Поэтому вопросов мало, они
-осмысленные и всегда с готовым ответом «ок».
+Always communicate with the owner in Russian.
 
-## Шесть фаз
+## Six Phases
 
-| # | Фаза | Результат | Подробности |
+| # | Phase | Output | Details |
 |---|---|---|---|
-| 1 | **Анализ** | `docs/release/ANALYSIS.md`: что чисто, что болит, что неизвестно, всё с доказательствами | [analysis.md](references/analysis.md) |
-| 2 | **Интервью** | Ответы владельца, вопрос за вопросом, с предзаполненными вариантами | [interview.md](references/interview.md) |
-| 3 | **Контракты** | `RELEASE.md`, `PROFILE.md`, `STATE.md` из [templates/](templates/) | этот файл |
-| 4 | **Карта и очередь** | Роль × экран × сценарий, приоритеты P0–P3 | этот файл |
-| 5 | **Цикл** | Части по очереди: три прохода, PR на класс, симуляции, связки | [loop.md](references/loop.md) |
-| 6 | **Gate** | Проверка критериев, чек-лист пилота, отчёт | [gate.md](references/gate.md) |
+| 1 | **Analysis** | `docs/release/ANALYSIS.md`: clean areas, pain points, unknowns—all backed by evidence | [analysis.md](references/analysis.md) |
+| 2 | **Interview** | Owner decisions, one question at a time, pre-filled with options | [interview.md](references/interview.md) |
+| 3 | **Contracts** | `RELEASE.md`, `PROFILE.md`, `STATE.md` from [templates/](templates/) | this file |
+| 4 | **Map & Queue** | `Role × Screen × Scenario` matrix, P0–P3 queue | this file |
+| 5 | **Loop** | Slice by slice: 3 passes, one PR/commit-series per class, role personas, cross-slice seams | [loop.md](references/loop.md) |
+| 6 | **Gate** | Gate criteria verification, pilot checklist, final report | [gate.md](references/gate.md) |
 
-Дополнительные материалы цикла: [personas.md](references/personas.md) (симуляция ролей),
-[tech-choices.md](references/tech-choices.md) (смена технологий), [pass-1b-systems.md](references/pass-1b-systems.md)
-(системные дефекты), [working-method.md](references/working-method.md) (механика: PR, слияние, шаблоны заданий агентам),
-[honesty.md](references/honesty.md) (правила честности).
+Supporting guides: [personas.md](references/personas.md), [tech-choices.md](references/tech-choices.md), [pass-1-defects.md](references/pass-1-defects.md), [pass-1b-systems.md](references/pass-1b-systems.md), [pass-2-friction.md](references/pass-2-friction.md), [pass-3-design.md](references/pass-3-design.md), [working-method.md](references/working-method.md), [honesty.md](references/honesty.md).
 
-## Приоритеты
+## Priorities (P0–P3)
 
-Одна шкала на весь скилл: анализ ставит предварительные, очередь закрепляет.
+- **P0 (Pilot Blocker):** fails to build/install, loses data, security hole, critical role's primary flow broken.
+- **P1 (Flow Broken / Unsafe Ops):** dead ends, silent failures, no rollback, no diagnostics.
+- **P2 (Quality & Consistency):** missing UI states, hierarchy, copy, accessibility.
+- **P3 (Ideas Beyond Scope):** enhancements after gate.
 
-- **P0** блокирует пилот: не собирается, не ставится, теряет данные, дыра в безопасности,
-  главный сценарий критичной роли не проходится.
-- **P1** ломает сценарий или опасно эксплуатировать: тупики, молчаливые отказы, нет отката,
-  нет диагностики.
-- **P2** качество и консистентность: состояния экранов, дизайн, слова, доступность.
-- **P3** пожелания и идеи сверх.
+## Entry: Pick the Mode
 
-## Вход: определи режим
+- **`docs/release/STATE.md` exists (Resume):** Read `STATE.md`, `RELEASE.md`, `PROFILE.md`. Refresh analysis only on the git delta since last run. Jump straight into Phase 5.
+- **No state files (Full Run):** Execute Phases 1 → 6.
+- **Assessment only ("оцени состояние"):** Run Phase 1, deliver a concise report, stop and ask whether to proceed.
+- **Single-slice audit without release goal ("пройдись по админке", "свежий взгляд", "второй проход", "доведи до ума"):** Light mode. Skip Phase 2 (release interview) and Phase 6 (gate); do not create `RELEASE.md`. Run Phase 1 on that slice only, then run the 3 passes in Phase 5 + seams with adjacent slices.
+- **Read project rules first (`CLAUDE.md`, `AGENTS.md`, CONTRIBUTING):** Project rules override this skill.
 
-- **Есть `docs/release/STATE.md`**: возобновление. Прочитай `STATE.md`, `RELEASE.md`,
-  `PROFILE.md`. Освежи анализ только по дельте (git log с даты последней записи, прогон
-  базовой линии). Интервью только по тому, что изменилось. Дальше сразу в цикл.
-- **Файлов нет**: новый запуск, фазы 1→6 подряд.
-- **Просят только оценить состояние**: фаза 1, короткий отчёт, стоп. Спроси, идти ли дальше.
-- **Просят разобрать и довести одну часть без цели релиза** («пройдись по админке», «приведи в
-  порядок», «свежий взгляд», «макеты перед переделкой») — без слов «релиз», «пилот», «выпуск»:
-  лёгкий режим. Пропусти фазу 2 (интервью про релиз) и фазу 6 (gate); `RELEASE.md` не создавай.
-  Фаза 1 — только по этой части. Фаза 3 в усечённом виде: `PROFILE.md` (границы автономии,
-  команды) и `STATE.md` (очередь из одной части), если часть большая и работа может прерваться;
-  для короткой задачи обойдись без файлов. Сразу в фазу 5: три прохода на этой части, связки —
-  только с её соседями. Отчёт — по форме ниже, без разделов про gate и критерии. Если по ходу
-  всплывает P0/P1, который тянет на «нельзя выпускать», скажи об этом отдельно и спроси, не пора
-  ли перейти в полный режим.
-- **Корень проекта неясен** (сессия в пустой папке): спроси, какой проект, и перейди в него
-  инструментом смены каталога, если он есть. Не работай в пустом.
-- **Владелец уже ответил на часть вопросов в своём сообщении**: учти, не переспрашивай.
+## Phase 1–4 Summary
 
-Перед фазой 1 прочитай правила проекта и владельца (`CLAUDE.md`, `AGENTS.md`, CONTRIBUTING,
-стиль коммитов, разделы README о процессе). Они главнее этого скилла: хорошая находка с
-нарушенным правилом проекта обесценивается. Если правило конфликтует со скиллом (например,
-«планы в дереве не храним», а скилл ведёт `docs/release/`), побеждает правило проекта, а вопрос
-«где хранить файлы» идёт в интервью. Если среда не даёт писать файлы (субагент, песочница),
-возвращай содержимое текстом.
+1. **Phase 1 (Read-Only Analysis):** Run baseline build/lint/tests (in a temp copy or clean tree). Separate **red project** (test failed) from **environment missing** (daemon/SDK absent). Write `docs/release/ANALYSIS.md` ([analysis.md](references/analysis.md)).
+2. **Phase 2 (Interview):** Show a 5–8 line summary of Phase 1, create draft contract files, and ask questions one by one with pre-filled options and `(рекомендую)` ([interview.md](references/interview.md)). Skip any question already answered by code or owner rules.
+3. **Phase 3 (Contracts):**
+   - `RELEASE.md`: goal, deadline, gate criteria (each tied to a verbatim owner quote or `ANALYSIS.md` finding), non-goals. Owner clarifications continue the task; additions reopen affected criteria; only an explicit re-aim rewrites `RELEASE.md`.
+   - `PROFILE.md`: target environment, roles, autonomy boundaries, tech policy, subagent policy, build/test/run commands.
+   - `STATE.md`: priority queue, decision log, questions for owner, consciously deferred items, next step.
+   Show `RELEASE.md` and the autonomy table from `PROFILE.md` in full and wait for `"поехали"`.
+4. **Phase 4 (Map & Queue):** Build the `Role × Screen × Scenario` matrix in `STATE.md` (or `docs/release/MAP.md`). Order the queue top-down (`P0 → P1 → P2 → P3`). Never polish P2 while P0/P1 remain open.
 
-## Фаза 1. Анализ существующего кода
+## Phase 5–6 Summary
 
-Интервью без анализа превращается в анкету из абстрактных вопросов. Анализ даёт факты, из
-которых ты сам предзаполняешь ответы, и владельцу остаётся только подтвердить. Он же отвечает
-на главный вопрос: **насколько далеко до пилота** и что именно стоит между проектом и им.
+5. **Phase 5 (Loop — [loop.md](references/loop.md)):** Take the top slice from the queue and run:
+   - **Pass 1 (Defects):** [pass-1-defects.md](references/pass-1-defects.md) & [pass-1b-systems.md](references/pass-1b-systems.md).
+   - **Pass 2 (Friction):** [pass-2-friction.md](references/pass-2-friction.md) on a **running build** via role personas ([personas.md](references/personas.md)).
+   - **Pass 3 (Design):** [pass-3-design.md](references/pass-3-design.md) from live rendered screenshots across states and widths (load `interface-limb` when available).
+   - **Seams (Связки):** transitions between slices and adjacent roles.
+   - Close one defect class per commit/PR with a guard test explaining *why*. Update `STATE.md`. Do not ask "continue?" between slices.
+6. **Phase 6 (Gate & Report — [gate.md](references/gate.md)):** Verify `RELEASE.md` criteria after the final edit, check the pilot checklist, and output the Russian report below.
 
-Анализ **read-only** для проекта (создаёшь только `docs/release/`). Ничего не чини: сначала
-картина, потом решения. Сборки и тесты, которые пишут в проект, гоняй на копии во временной
-папке. «Не удалось запустить из-за среды» и «проект красный» это разные записи. Что смотреть и как оформить итог: [analysis.md](references/analysis.md). Базовая линия
-(сборка, тесты, запуск) прогоняется здесь же: красное до твоей правки это находка №1, а не
-фон.
+## Default Autonomy Boundaries
 
-## Фаза 2. Интервью
-
-Покажи владельцу вывод анализа в 5–8 строк, затем задавай вопросы **по одному**, с вариантами.
-Формат, список вопросов, правила пропуска и режим «остальное по умолчанию» — в
-[interview.md](references/interview.md). Каждый ответ сразу пиши в файл: интервью, оборванное
-на середине, не должно терять сказанное.
-
-Не задавай вопрос, ответ на который читается из кода или уже сказан. Не задавай больше
-вопросов, чем меняют работу.
-
-## Фаза 3. Контракты
-
-Заготовки трёх файлов из шаблонов создай в **начале фазы 2** и заполняй по мере ответов: так
-прерванное интервью ничего не теряет. К концу интервью доведи их до полного вида. Файлы живут
-в репозитории и переживают сессии.
-
-- `RELEASE.md`: цель, срок, критерии gate (с буквальной привязкой каждого обязательства к цитате владельца или `ANALYSIS.md`), нецели. Владелец утверждает его одной репликой. Уточнение владельца по ходу продолжает задачу, добавление переоткрывает затронутые критерии, и только явная смена цели (re-aim) переписывает `RELEASE.md`.
-- `PROFILE.md`: среда, роли, границы автономии, режим технологий, агенты, правила проекта,
-  команды сборки/тестов/запуска.
-- `STATE.md`: очередь, журнал решений, вопросы владельцу, осознанно не сделанное, следующий шаг.
-
-Покажи `RELEASE.md` и таблицу автономии из `PROFILE.md` целиком и жди «поехали». Это
-единственная остановка перед автономной работой: дальше владелец доверяет записанному.
-
-## Фаза 4. Карта и очередь
-
-Собери в `STATE.md` (или `docs/release/MAP.md`, если большая) матрицу **роль × экран ×
-сценарий**. Источники: роутинг, ролевая модель и права (права это прямой список того, что люди
-здесь делают), уведомления, каталог строк, анализ. Из неё и из `ANALYSIS.md` построй очередь по шкале из раздела «Приоритеты».
-
-Очередь идёт сверху вниз. Пока есть P0/P1, P2 не трогаешь: полировка поверх блокера
-выглядит как прогресс и им не является. Единица очереди это **часть продукта** (приложение,
-панель, служба, модуль) либо **сквозной класс** (например, «установка и обновление»).
-
-## Фаза 5. Цикл
-
-Берёшь верх очереди и ведёшь часть через проходы, PR и проверки. Полный алгоритм, правила
-агентов, связки между частями и условия остановки: [loop.md](references/loop.md). Коротко:
-
-1. **Проход 1, дефекты**: классы из [pass-1-defects.md](references/pass-1-defects.md) и
-   [pass-1b-systems.md](references/pass-1b-systems.md).
-2. **Проход 2, трение**: [pass-2-friction.md](references/pass-2-friction.md), сценарии
-   проживаются на **запущенной сборке** персонами ([personas.md](references/personas.md)).
-3. **Проход 3, дизайн**: [pass-3-design.md](references/pass-3-design.md), с рендером и
-   скриншотами, не по коду.
-4. **Связки**: переходы между частями и соседние роли ([loop.md](references/loop.md#связки)).
-5. Один класс = один PR/коммит-серия. Проверки перед «готово». Запись в `STATE.md`.
-
-Не спрашивай «продолжать?» между частями. Идёшь по очереди, пока не сработает условие
-остановки.
-
-## Фаза 6. Gate и отчёт
-
-Прогони критерии из `RELEASE.md`, пройди чек-лист пилота, выдай отчёт по форме ниже.
-Подробности и условия остановки: [gate.md](references/gate.md).
-
-## Границы автономии по умолчанию
-
-Владелец меняет их в интервью. Без явной записи действует это:
-
-| Делаешь сам | Только по явной команде |
+| Do Autonomously | Explicit Owner Command Only (R5) |
 |---|---|
-| Код, тесты, рефакторинг в рамках задачи | Деплой, миграции боевых данных |
-| Ветки и коммиты в рабочую ветку | Пуш, открытие и слияние PR, force-push |
-| Установка dev-зависимостей, запуск локально | Публикация, рассылки, платежи, удаление данных |
-| Ресёрч, чтение доков; агенты — если разрешены в `PROFILE.md` | Смена прав, ослабление auth, валидации, лимитов, аудита ради зелёного |
-| Мелкие замены технологий через адаптер | Крупная миграция стека (после P0/P1 и по [tech-choices.md](references/tech-choices.md)) |
+| Code, tests, refactoring in scope | Production deploy, prod DB migrations |
+| Local branches and commits | `git push`, opening/merging PRs, force-push |
+| Local dev dependencies & local runs | Publishing to stores, sending messages, payments, deleting data |
+| Research, reading docs; subagents if allowed in `PROFILE.md` | Changing permissions or weakening auth, validation, rate limits, or audit logs |
 
-Упёрся в правую колонку: выбери безопасный вариант, запиши вопрос в `STATE.md`, переключись на
-другую работу. Не стой и не обходи молча.
-
-## Честность
-
-Пять правил из [honesty.md](references/honesty.md) действуют всегда. Главные: осознанное чужое
-решение не разворачивай молча; ложный зелёный хуже видимой дыры; несделанное записывай с
-причиной и ценой; «готово» только с проверкой в этой же сессии; свою ошибку называй сразу и
-своими словами.
-
-## Форма отчёта
+## Report Format (Reply to Owner in Russian)
 
 ```
-**Что сделал:** <проект, фазы, N частей, N PR: влиты / ждут решения>.
-
-**Анализ:** до пилота было <далеко/близко>, потому что <1–2 факта>. Сейчас: <вердикт gate>.
-
-**Закрыто:** по частям, в порядке очереди. Для каждой: что мешало человеку, что теперь.
-
-**Не сделано осознанно:** <пункт>, причина, цена, чьё решение.
-
-**Нужно от вас:** <вопросы из STATE.md, максимум пять, с рекомендацией>.
-
-**Проверено (команды и числа):** <вывод сборки, тестов, линта, CI, симуляций, замеров после последней правки>. **Вердикт gate:** <G1..G12 по отдельности от вывода команд>. **Не проверено:** <что и почему>.
-
-**Дальше:** <следующий значимый кусок по проекту, не пятый нюанс сделанного>.
+**Что сделал:** <project, phases, N slices, N commits/PRs>.
+**Анализ:** до пилота было <далеко/средне/близко>, потому что <1–2 facts>. Сейчас: <gate verdict>.
+**Закрыто:** <by slice, in queue order: what hurt the user → what happens now>.
+**Не сделано осознанно:** <item, reason, cost, threshold/owner decision>.
+**Нужно от вас:** <up to 5 questions from STATE.md, with recommendation>.
+**Проверено (команды и числа):** <build, test, lint, CI, simulations, benchmarks after final edit>. **Вердикт gate:** <G1..G12 separately from command outputs>. **Не проверено:** <what and why>.
+**Дальше:** <next major project slice>.
 ```
-
-Пиши человеческим языком: цена для человека, а не имя дефекта. Если вопрос к владельцу есть,
-пиши его и текстом ответа: блок с кнопками он может не увидеть.
-
-## Чек-лист завершения сессии
-
-- [ ] `STATE.md` обновлён: что сделано, очередь, вопросы владельцу, следующий шаг.
-- [ ] Решения о технологиях записаны в `docs/release/decisions/`.
-- [ ] Каждая закрытая находка проверена тестом или запуском, а не «должно работать».
-- [ ] Каждый класс закрыт целиком или записан в несделанное с причиной.
-- [ ] Ничего из правой колонки автономии не сделано без команды.
-- [ ] Ничего чужого и осознанного не развёрнуто молча.
-- [ ] В отчёте названо, что не проверено.

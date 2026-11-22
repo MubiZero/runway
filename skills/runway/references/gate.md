@@ -1,80 +1,27 @@
-# Фаза 6. Release gate и остановка
+# Phase 6: Release Gate & Stopping Criteria
 
-Gate отвечает на вопрос «можно выпускать на пилот?» набором **проверяемых** критериев. Критерий
-без способа проверки не критерий, а пожелание. Набор адаптируется в интервью; ниже
-стартовая версия.
+A gate criterion without a verification command or protocol is a wish, not a gate.
 
-## Критерии (стартовый набор)
+## Gate Criteria (G1–G12)
 
-| # | Критерий | Как проверить |
+| # | Criterion | Verification Method |
 |---|---|---|
-| G1 | Чистая сборка и установка на целевых конфигурациях | Собери артефакт, поставь с нуля на среду из `PROFILE.md` |
-| G2 | Обновление с предыдущей версии с сохранением данных; откат | Поставь прошлую версию, обнови, проверь данные, откати |
-| G3 | Нет открытых P0 и P1 | Очередь в `STATE.md` |
-| G4 | Главные сценарии каждой роли проходят e2e без тупиков | Персоны на запущенной сборке, отчёты в `docs/release/simulations/` |
-| G5 | Базовая линия зелёная: тесты, типы, линт, сборка (и CI, если есть) | Прогон, числа в отчёте |
-| G6 | Бюджеты соблюдены: старт, память, трафик, размер дистрибутива | Замер на целевой среде, числа в отчёте; для мобильного приложения — если доступен `mobile-release`, бери числа и флаги сборки оттуда |
-| G7 | Поведение без связи и при плохой сети описано и проверено | Отключение, замедление сети, обрыв посреди операции |
-| G8 | Безопасность: нет секретов в репозитории и истории, права проверены на сервере, зависимости без критичных уязвимостей | Поиск секретов, аудит зависимостей, проверка прав вне интерфейса |
-| G9 | Данные: бэкап и восстановление работают, миграции обратимы или есть план | Восстановление на чистой машине; для PostgreSQL — если доступен `postgres-migrations`, используй его чек-лист перед миграцией на боевые данные |
-| G10 | Наблюдаемость: логи и ошибки доступны тому, кто поддерживает пилот | Вызови ошибку, найди её след |
-| G11 | Документы для пилота: установка, первый запуск, типовые операции, что делать при сбое | Человек по инструкции ставит без тебя; если доступен `docs-hygiene` — прогони его на этих документах перед передачей человеку, протухшая инструкция хуже отсутствующей |
-| G12 | Чек-лист пилота пройден (ниже) | Пункты ниже |
+| **G1** | Clean build & fresh install on target environment | Build release artifact, install from scratch on `PROFILE.md` target |
+| **G2** | Upgrade from previous version preserving data + rollback | Install old version, seed data, upgrade, verify data, test rollback |
+| **G3** | Zero open P0 or P1 items | Check `STATE.md` queue |
+| **G4** | Primary scenarios for each role pass E2E without dead ends | Role personas + Editor pass on live build (`docs/release/simulations/`) |
+| **G5** | Baseline green: full test suite, types, lint, build (and CI) | Run full suite after final edit; record exact numbers |
+| **G6** | Resource budgets met: cold start, RAM, network payload, bundle size | Measure on target environment (`mobile-release` for Flutter apps) |
+| **G7** | Offline & poor-network behavior verified | Disconnect/throttle network mid-operation; verify recovery & zero duplicates |
+| **G8** | Security: zero secrets in repo/history, server-side auth on all routes, no critical CVEs | Secret scan, dependency audit, out-of-UI authorization test |
+| **G9** | Data safety: backup & tested restore on clean instance, safe migrations | Run restore drill; run `postgres-migrations` `check_migration.sh` |
+| **G10** | Observability: logs & crash traces accessible to pilot support | Trigger an error and trace it end-to-end |
+| **G11** | Pilot documentation: install, first run, daily ops, troubleshooting | Run `docs-hygiene` (`doc_audit.sh`) and verify newcomer readability |
+| **G12** | Pilot launch checklist completed | Named pilot site owner, support channel, known-limits note, rollback plan, success/abort metrics |
 
-В минимальном наборе (по выбору владельца): G1, G2, G3, G4 для критичной роли, G5, G8.
-Всё, что не вошло, записывается в `RELEASE.md` как «не входит в gate» с последствиями.
+*(Minimal gate when selected by owner: G1, G2, G3, G4 for critical role, G5, G8.)*
 
-## Чек-лист пилота
-
-- [ ] Названа пилотная точка и человек, который отвечает за неё со стороны клиента.
-- [ ] Есть канал, по которому клиент сообщает о проблеме, и тот, кто на него отвечает.
-- [ ] Список известных ограничений написан человеческим языком, пилотная точка о нём знает.
-- [ ] Есть способ быстро откатить на прошлую версию и вернуть данные.
-- [ ] Сотрудники пилота прошли короткое обучение или получили инструкцию, проверенную на
-      новичке.
-- [ ] Определено, что считается успехом пилота и как его измерить.
-- [ ] Определено, что считается причиной остановить пилот.
-- [ ] Данные пилота можно забрать, если пилот не продолжится.
-
-Пункты, которые зависят от людей и внешнего мира, ты подготовить не можешь, но обязан
-**назвать** владельцу: «вот что нужно вам сделать до старта».
-
-## Как прогонять
-
-Критерий, который сводится к команде с кодом возврата (G1, G2, G5, G6, G9 — чаще всего именно
-они), **не самооценивай**: своя пометка «прошёл» в `STATE.md` — это и есть разрыв из
-[honesty.md](honesty.md) правила 6. Если в проекте доступен скилл `unlazy`, заведи для них
-`docs/release/GATES.md` в его формате (`CHECK:`/`EXPECT:`/`EVIDENCE:` на критерий) и прогоняй
-через его чекер — доказательство привязано хэшем к самой проверке, а не к твоим словам о ней:
-
-```
-node <путь-к-unlazy>/scripts/gate-check.mjs --approve docs/release/GATES.md
-node <путь-к-unlazy>/scripts/gate-check.mjs --reverify docs/release/GATES.md   # перед закрытием
-```
-
-Критерий остаётся в `RELEASE.md` с той же нумерацией; `EVIDENCE:` из `GATES.md` — то, что
-пишется в `STATE.md` вместо собственной пометки. Нет `unlazy` в проекте — прогоняй командой
-руками и клади в `STATE.md` сам вывод (код возврата, число), а не вывод.
-
-Критерии, которые не сводятся к команде (G3 — чтение очереди, G4 — протокол персоны, G7, G8,
-G10, G11, G12 — ручная проверка по чек-листу): для них и остаётся самооценка, поэтому к ним
-особенно применимо правило 6 — калибруй по протоколу, а не по первому впечатлению.
-
-1. Для каждого критерия запиши в `STATE.md` результат: прошёл / не прошёл / не проверен, с
-   доказательством (команда и её вывод, `EVIDENCE:` из `GATES.md`, скриншот, путь к отчёту).
-2. «Не проверен» не засчитывается как «прошёл». Назови причину и порог.
-3. Не прошёл: заведи в очередь с приоритетом по влиянию, вернись в цикл.
-4. Все критерии зелёные и перепроверены после последней правки (`--reverify` для прогоняемых):
-   gate зелёный.
-
-## Остановка
-
-Остановка это не провал. Три честные причины остановиться: gate зелёный, остались только
-вопросы владельцу, два цикла без прогресса. Для каждой отчёт по форме из SKILL.md. Если gate
-красный, в отчёте нужен список оставшегося с оценкой объёма и рекомендацией, что делать
-следующим.
-
-## После gate
-
-Gate зелёный не значит «деплой». Выпуск на пилот, публикация, рассылки это внешние
-необратимые действия, они только по явной команде. Предложи владельцу план выпуска и жди.
+## Execution Protocol
+- **Never self-certify command-based gates (G1, G2, G5, G6, G9):** run the actual command *after* the final file edit (or via `unlazy` `gate-check.mjs --reverify docs/release/GATES.md` if installed) and record the literal exit code and numbers in `STATE.md`.
+- Report command outputs and gate verdicts separately in the final report.
+- A green gate does **not** authorize deployment: propose the rollout plan and wait for the owner's explicit command (R5).
